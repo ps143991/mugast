@@ -1,0 +1,25 @@
+Package:
+ name: mugast
+ type: detector
+ groups: backward light particles
+ url: https://github.com/ps143991/mugast.git
+ version: 0.1
+ author: Prabhat Sharma
+ mail: prabhat.sharma@ganil.fr
+ description: mugast
+ dependencies:
+
+Plugin: 
+  token: mugast
+  library: NPMugast
+ 
+PluginCitation:
+ type: Detector
+ citation: 
+ url: 
+
+PluginCitation:
+ type: Analysis
+ citation: something else
+ url: www.another-link.org
+
