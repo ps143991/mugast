@@ -1063,7 +1063,7 @@ void MugastDetector::InitializeDataOutputPhysics(
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/* void MugastDetector::InitSimulation(std::string simtype) {
+void MugastDetector::InitSimulation(std::string simtype) {
   // store the loaded simulation
   m_simtype = simtype;
 
@@ -1079,10 +1079,10 @@ void MugastDetector::InitializeDataOutputPhysics(
   else
     throw(nptool::Error("MugastDetector", "Fail to load Geant4 module"));
 #endif
-} */
+}
 ////////////////////////////////////////////////////////////////////////////////
 
-/* void MugastDetector::ConstructGeometry() {
+void MugastDetector::ConstructGeometry() {
 #ifdef Geant4_FOUND
   if (m_Geant4) {
     // should load the library here and find the external constructor
@@ -1090,7 +1090,7 @@ void MugastDetector::InitializeDataOutputPhysics(
     m_Geant4->ConstructDetector();
   }
 #endif
-} */
+}
 
 
 
@@ -1100,10 +1100,10 @@ void MugastDetector::InitSpectra() {
   m_Spectra = std::make_shared<mugast::MugastSpectra>();
 };
 ////////////////////////////////////////////////////////////////////////////////
-// void MugastDetector::FillSpectra() {
-//   m_Spectra->FillRaw();
-//   m_Spectra->FillPhy();
-// };
+void MugastDetector::FillSpectra() {
+  // m_Spectra->FillRaw();
+  // m_Spectra->FillPhy();
+};
 ////////////////////////////////////////////////////////////////////////////////
 void MugastDetector::WriteSpectra() {};
 ////////////////////////////////////////////////////////////////////////////////
