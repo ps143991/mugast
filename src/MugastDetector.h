@@ -19,6 +19,10 @@
 #include "TVector2.h"
 #include "TVector3.h"
 
+#include "TRandom3.h"
+// include xyz vector from root
+using ROOT::Math::XYZVector;
+
 // MFM
 #ifdef MFM_FOUND
 #include "MFMAllFrames.h"
@@ -132,10 +136,8 @@ public: // inherrited from nptool::VDetector
   //   Initialize the standard parameter for analysis
   //   ie: all channel enable, maximum multiplicity for strip = number of
   //   telescope
-  void InitializeStandardParameter();
 
   //   Read the user configuration file; if no file found, load standard one
-  void ReadAnalysisConfig();
 
   //   Add a Telescope using Corner Coordinate information
   void AddTelescope(MG_DetectorType type, XYZVector C_X1_Y1, XYZVector C_X128_Y1, XYZVector C_X1_Y128,
