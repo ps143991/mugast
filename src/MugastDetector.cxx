@@ -6,9 +6,9 @@
 #include <iostream>
 
 // For Geant4 Simulation
-#ifdef Geant4_FOUND
-#include "MugastGeant4.h"
-#endif
+// #ifdef Geant4_FOUND
+// #include "MugastGeant4.h"
+// #endif
 
 // std
 #include <dlfcn.h>
