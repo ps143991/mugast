@@ -1,0 +1,9 @@
+module "NPMugast" {
+  requires cplusplus
+  module "MugastData.h" { header "MugastData.h" export * }
+  module "MugastPhysics.h" { header "MugastPhysics.h" export * }
+  module "MugastSpectra.h" { header "MugastSpectra.h" export * }
+  link "libNPMugast.dylib"
+  export *
+}
+
