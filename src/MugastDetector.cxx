@@ -985,6 +985,7 @@ void MugastDetector::TreatFrame(void* commonframe) {
   std::string        label;
   unsigned short     LblData[2];
   unsigned long long TS;
+  MG_DetectorType type = MG_NOCHANGE ;
 
   std::shared_ptr<MFMEbyedatFrame> EbyEframe
       = std::make_shared<MFMEbyedatFrame>();
