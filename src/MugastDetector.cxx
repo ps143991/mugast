@@ -994,7 +994,7 @@ void MugastDetector::TreatFrame(void* commonframe) {
   TS     = EbyEframe->GetTimeStamp();
   if (TS == 0) {
     std::cout << "/////////////////////////////" << std::endl;
-    std::cout << "   MUST2 WARNING TS IS 0     " << std::endl;
+    std::cout << "   MUGAST WARNING TS IS 0    " << std::endl;
     std::cout << "/////////////////////////////" << std::endl;
   }
 
@@ -1005,49 +1005,29 @@ void MugastDetector::TreatFrame(void* commonframe) {
 
     label = fLabelMap[label_id];
 
-    if (label.compare(0, 2, "MM") == 0) {
+    if (label.compare(0, 2, "MG") == 0) {
       double det = atoi(label.substr(2, 1).c_str());
       double channel;
-      if (label.compare(4, 6, "STRX_E") == 0) {
-        channel = atoi(label.substr(10).c_str());
-        m_RawData->SetStripXE(det, channel, value);
+      if (label.compare(5, 6, "STRX_E") == 0) {
+        channel = atoi(label.substr(11).c_str());
+        m_RawData->SetDSSDXE(type, det, channel, value);
       }
 
-      else if (label.compare(4, 6, "STRX_T") == 0) {
-        channel = atoi(label.substr(10).c_str());
-        m_RawData->SetStripXT(det, channel, value);
+      else if (label.compare(5, 6, "STRX_T") == 0) {
+        channel = atoi(label.substr(11).c_str());    
+        m_RawData->SetDSSDXT(type, det, channel, value);
       }
 
-      else if (label.compare(4, 6, "STRY_E") == 0) {
-        channel = atoi(label.substr(10).c_str());
-        m_RawData->SetStripYE(det, channel, value);
+      else if (label.compare(5, 6, "STRY_E") == 0) {
+        channel = atoi(label.substr(11).c_str());
+        m_RawData->SetDSSDYE(type, det, channel, value);
       }
 
-      else if (label.compare(4, 6, "STRY_T") == 0) {
-        channel = atoi(label.substr(10).c_str());
-        m_RawData->SetStripYT(det, channel, value);
+      else if (label.compare(5, 6, "STRY_T") == 0) {
+        channel = atoi(label.substr(11).c_str());
+        m_RawData->SetDSSDYT(type, det, channel, value);
       }
-
-      else if (label.compare(4, 6, "SILI_E") == 0) {
-        channel = atoi(label.substr(10).c_str());
-        m_RawData->SetSiLiE(det, channel, value);
-      }
-
-      else if (label.compare(4, 6, "SILI_T") == 0) {
-        channel = atoi(label.substr(10).c_str());
-        m_RawData->SetSiLiT(det, channel, value);
-      }
-
-      else if (label.compare(4, 5, "CSI_E") == 0) {
-        channel = atoi(label.substr(9).c_str());
-        m_RawData->SetCsIE(det, channel, value);
-      }
-
-      else if (label.compare(4, 5, "CSI_T") == 0) {
-        channel = atoi(label.substr(9).c_str());
-        m_RawData->SetCsIT(det, channel, value);
-      }
-      m_RawData->SetMMTS(TS);
+      // m_RawData->SetMMTS(TS);
     }
   }
 #endif
