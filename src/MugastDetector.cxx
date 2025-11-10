@@ -440,11 +440,8 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
   // vector<nptool::InputBlock*> blocks = parser.GetAllBlocksWithToken("Mugast");
   auto blocks = parser.GetAllBlocksWithToken("Mugast");  //PS: becasue definition of GetAllBlocksWithToken changed in NP4
 
-  // if (NPOptionManager::getInstance()->GetVerboseLevel())
-    // cout << "//// " << blocks.size() << " Telescope found " << endl;
-
   // Cartesian Case
-  vector<string> cart = {"DetectorNumber", "X1_Y1", "X1_Y128", "X128_Y1", "X128_Y128"};
+  vector<string> cart = {"DetectorNumber", "X001_Y001", "X001_Y128", "X128_Y001", "X128_Y128"};
   // Spherical Case
   vector<string> sphe = {"DetectorNumber", "R", "THETA", "PHI", "BETA"};
   // Annular Case
@@ -520,7 +517,7 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
     }
 
     else {
-      cout << "ERROR: Missing token for Mugast, check your input "
+      cout << "ERROR: Missing token for Mugast, check your detector definition (yaml)"
               "file"
            << endl;
       exit(1);
