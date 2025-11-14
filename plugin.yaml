@@ -2,7 +2,7 @@ Package:
  name: mugast
  type: detector
  groups: backward light particles
- url: https://github.com/ps143991/mugast.git
+ url: https://gitlab.in2p3.fr/prabhat.sharma/mugast.git
  version: 0.1
  author: Prabhat Sharma
  mail: prabhat.sharma@ganil.fr
