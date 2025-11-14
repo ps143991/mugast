@@ -91,13 +91,14 @@ namespace mugast {
         static unsigned int newStrip;
       newStrip = StripNbr;
       if(type==MG_SQUARE)
-       newStrip=fMG_MapSquareX[StripNbr]; 
+       {newStrip=fMG_MapSquareX[StripNbr]; }
       else if(type==MG_TRAPEZE)
-       newStrip=fMG_MapTrapezeX[StripNbr]; 
+       {newStrip=fMG_MapTrapezeX[StripNbr]; }
       else if(type==MG_ANNULAR)
-       newStrip=fMG_MapAnnularX[StripNbr];  
+       {newStrip=fMG_MapAnnularX[StripNbr];  }
       
       SetDSSDXE(DetNbr,newStrip,Energy); 
+
 
       }
       private:
@@ -105,6 +106,7 @@ namespace mugast {
         fMG_DSSDXE_DetectorNbr.push_back(DetNbr);
         fMG_DSSDXE_StripNbr.push_back(StripNbr);
         fMG_DSSDXE_Energy.push_back(Energy);
+
       }
       
       // (X,T)
@@ -120,7 +122,7 @@ namespace mugast {
       else if(type==MG_ANNULAR)
        newStrip=fMG_MapAnnularX[StripNbr];  
 
-      SetDSSDXT(DetNbr,newStrip,Time); 
+      SetDSSDXT(DetNbr,newStrip,Time);
       }
  
      private:

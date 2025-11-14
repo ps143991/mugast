@@ -41,6 +41,7 @@ MugastDetector::MugastDetector() {
 
   m_Take_E_Y = false;
   m_Take_T_Y = true;
+  faction_file_initialized = false;
 }
 
 MugastDetector::~MugastDetector() {}
@@ -59,16 +60,22 @@ void MugastDetector::PreTreat() {
   SecondLayer_EMult = m_RawData->GetSecondLayerEMult();
   SecondLayer_TMult = m_RawData->GetSecondLayerTMult();
   MG_DetectorType type = MG_NOCHANGE;
+
+
   //   X
   //   E
   for (unsigned int i = 0; i < DSSDX_EMult; ++i) {
     type = DetectorType[m_RawData->GetDSSDXEDetectorNbr(i)];
-    if (m_RawData->GetDSSDXEEnergy(i) > m_DSSD_X_E_RAW_Threshold &&
-        IsValidChannel(0, m_RawData->GetDSSDXEDetectorNbr(i), m_RawData->GetDSSDXEStripNbr(i))) {
+
+
+    if (m_RawData->GetDSSDXEEnergy(i) > m_DSSD_X_E_RAW_Threshold){
+
+        if(IsValidChannel(0, m_RawData->GetDSSDXEDetectorNbr(i), m_RawData->GetDSSDXEStripNbr(i))) {
       double EX = fDSSD_X_E(/* m_RawData, */ i);
       if (EX > m_DSSD_X_E_Threshold)
         m_CalData->SetDSSDXE(type, m_RawData->GetDSSDXEDetectorNbr(i), m_RawData->GetDSSDXEStripNbr(i), EX);
     }
+  }
   }
 
   //   T
@@ -127,9 +134,7 @@ void MugastDetector::PreTreat() {
 
 void MugastDetector::BuildPhysicalEvent() {
 
-
   PreTreat();
-
   bool check_SecondLayer = false;
   static unsigned int DSSDXEMult, DSSDYEMult, DSSDXTMult, DSSDYTMult, SecondLayerEMult, SecondLayerTMult;
   DSSDXEMult = m_CalData->GetDSSDXEMult();
@@ -139,15 +144,21 @@ void MugastDetector::BuildPhysicalEvent() {
   SecondLayerEMult = m_CalData->GetSecondLayerEMult();
   SecondLayerTMult = m_CalData->GetSecondLayerTMult();
 
+    if(DSSDXEMult > 0 || DSSDYEMult > 0)
+
+
   // random->SetSeed(42);
 
   // srand(time(NULL));
 
   if (1 /*CheckEvent() == 1*/) {
+
     vector<TVector2> couple = Match_X_Y();
 
     m_PhysicsData->EventMultiplicity = couple.size();
+
     for (unsigned int i = 0; i < couple.size(); ++i) {
+
       check_SecondLayer = false;
 
       int N = m_CalData->GetDSSDXEDetectorNbr(couple[i].X());
@@ -276,6 +287,7 @@ vector<TVector2> MugastDetector::Match_X_Y() {
   m_DSSDXEMult = m_CalData->GetDSSDXEMult();
   m_DSSDYEMult = m_CalData->GetDSSDYEMult();
 
+
   // Prevent code from treating very high multiplicity Event
   // Those event are not physical anyway and that improve speed.
   if (m_DSSDXEMult > m_MaximumStripMultiplicityAllowed || m_DSSDYEMult > m_MaximumStripMultiplicityAllowed) {
@@ -283,12 +295,12 @@ vector<TVector2> MugastDetector::Match_X_Y() {
   }
 
   for (unsigned int i = 0; i < m_DSSDXEMult; i++) {
+
     for (unsigned int j = 0; j < m_DSSDYEMult; j++) {
 
       // Declaration of variable for clarity
       double DSSDXDetNbr = m_CalData->GetDSSDXEDetectorNbr(i);
       double DSSDYDetNbr = m_CalData->GetDSSDYEDetectorNbr(j);
-
       //   if same detector check energy
       if (DSSDXDetNbr == DSSDYDetNbr) {
 
@@ -355,32 +367,38 @@ bool MugastDetector::IsValidChannel(const int& Type,
 
 ///////////////////////////////////////////////////////////////////////////
 void MugastDetector::ReadAnalysisConfig() {
-
+  // nptool::InputParser parser("./configs/ConfigMugast.dat", false);
   nptool::InputParser parser("./configs/ConfigMugast.dat", false);
   // vector<nptool::InputBlock*> blocks = parser.GetAllBlocksWithToken("ConfigMugast");
-  auto blocks = parser.GetAllBlocksWithToken("MugastAnalysis");             // PS: changed to "auto"
+  auto blocks = parser.GetAllBlocksWithToken("ConfigMugast");           
 
+  //red color cout
   cout << endl << "//// Read MUGAST analysis configuration" << endl;
 
-  for (unsigned int i = 0; i < blocks.size(); i++) {
-    if (blocks[i]->HasToken("MAX_STRIP_MULTIPLICITY"))
-      m_MaximumStripMultiplicityAllowed = blocks[i]->GetInt("MAX_STRIP_MULTIPLICITY");
 
-    if (blocks[i]->HasToken("STRIP_ENERGY_MATCHING"))
-      m_StripEnergyMatching = blocks[i]->GetDouble("STRIP_ENERGY_MATCHING", "MeV");
+  for(const auto& block : blocks) {  
 
-    if (blocks[i]->HasToken("DISABLE_CHANNEL_X")) {
-      vector<int> v = blocks[i]->GetVectorInt("DISABLE_CHANNEL_X");
+
+
+    if(block->HasToken("MAX_STRIP_MULTIPLICITY"))
+      m_MaximumStripMultiplicityAllowed = block->GetInt("MAX_STRIP_MULTIPLICITY");
+
+    if (block->HasToken("STRIP_ENERGY_MATCHING"))
+      m_StripEnergyMatching = block->GetDouble("STRIP_ENERGY_MATCHING", "MeV");
+
+    if (block->HasToken("DISABLE_CHANNEL_X")) {
+      vector<int> v = block->GetVectorInt("DISABLE_CHANNEL_X");
       *(m_XChannelStatus[v[0]].begin() + v[1] - 1) = false;
+      //the above line disables the v[1]th channel of telescope v[0]
     }
 
-    if (blocks[i]->HasToken("DISABLE_CHANNEL_Y")) {
-      vector<int> v = blocks[i]->GetVectorInt("DISABLE_CHANNEL_Y");
+    if (block->HasToken("DISABLE_CHANNEL_Y")) {
+      vector<int> v = block->GetVectorInt("DISABLE_CHANNEL_Y");
       *(m_YChannelStatus[v[0]].begin() + v[1] - 1) = false;
     }
 
-    if (blocks[i]->HasToken("DISABLE_ALL")) {
-      int telescope = blocks[i]->GetInt("DISABLE_ALL");
+    if (block->HasToken("DISABLE_ALL")) {
+      int telescope = block->GetInt("DISABLE_ALL");
       vector<bool> ChannelStatus;
       ChannelStatus.resize(128, false);
       m_XChannelStatus[telescope] = ChannelStatus;
@@ -389,36 +407,37 @@ void MugastDetector::ReadAnalysisConfig() {
       m_SecondLayerChannelStatus[telescope] = ChannelStatus;
     }
 
-    if (blocks[i]->HasToken("TAKE_E_Y"))
-      m_Take_E_Y = blocks[i]->GetInt("TAKE_E_Y");
+    if (block->HasToken("TAKE_E_Y"))
+      m_Take_E_Y = block->GetInt("TAKE_E_Y");
 
-    if (blocks[i]->HasToken("TAKE_T_Y"))
-      m_Take_T_Y = blocks[i]->GetInt("TAKE_T_Y");
+    if (block->HasToken("TAKE_T_Y"))
+      m_Take_T_Y = block->GetInt("TAKE_T_Y");
 
-    if (blocks[i]->HasToken("TAKE_E_X"))
-      m_Take_E_Y = !(blocks[i]->GetInt("TAKE_E_X"));
+    if (block->HasToken("TAKE_E_X"))
+      m_Take_E_Y = !(block->GetInt("TAKE_E_X"));
 
-    if (blocks[i]->HasToken("TAKE_T_X"))
-      m_Take_T_Y = !(blocks[i]->GetInt("TAKE_T_X"));
+    if (block->HasToken("TAKE_T_X"))
+      m_Take_T_Y = !(block->GetInt("TAKE_T_X"));
 
-    if (blocks[i]->HasToken("DSSD_X_E_RAW_THRESHOLD"))
-      m_DSSD_X_E_RAW_Threshold = blocks[i]->GetInt("DSSD_X_E_RAW_THRESHOLD");
+    if (block->HasToken("DSSD_X_E_RAW_THRESHOLD"))
+      {m_DSSD_X_E_RAW_Threshold = block->GetInt("DSSD_X_E_RAW_THRESHOLD");} 
 
-    if (blocks[i]->HasToken("DSSD_Y_E_RAW_THRESHOLD"))
-      m_DSSD_Y_E_RAW_Threshold = blocks[i]->GetInt("DSSD_Y_E_RAW_THRESHOLD");
+    if (block->HasToken("DSSD_Y_E_RAW_THRESHOLD"))
+      m_DSSD_Y_E_RAW_Threshold = block->GetInt("DSSD_Y_E_RAW_THRESHOLD");
 
-    if (blocks[i]->HasToken("SECONDLAYER_E_RAW_THRESHOLD"))
-      m_SecondLayer_E_RAW_Threshold = blocks[i]->GetInt("SECONDLAYER_E_RAW_THRESHOLD");
+    if (block->HasToken("SECONDLAYER_E_RAW_THRESHOLD"))
+      m_SecondLayer_E_RAW_Threshold = block->GetInt("SECONDLAYER_E_RAW_THRESHOLD");
 
-    if (blocks[i]->HasToken("DSSD_X_E_THRESHOLD"))
-      m_DSSD_X_E_Threshold = blocks[i]->GetDouble("DSSD_X_E_THRESHOLD", "MeV");
+    if (block->HasToken("DSSD_X_E_THRESHOLD"))
+      m_DSSD_X_E_Threshold = block->GetDouble("DSSD_X_E_THRESHOLD", "MeV");
 
-    if (blocks[i]->HasToken("DSSD_Y_E_THRESHOLD"))
-      m_DSSD_Y_E_Threshold = blocks[i]->GetDouble("DSSD_Y_E_THRESHOLD", "MeV");
+    if (block->HasToken("DSSD_Y_E_THRESHOLD"))
+      m_DSSD_Y_E_Threshold = block->GetDouble("DSSD_Y_E_THRESHOLD", "MeV");
 
-    if (blocks[i]->HasToken("SECONDLAYER_E_THRESHOLD"))
-      m_SecondLayer_E_Threshold = blocks[i]->GetDouble("SECONDLAYER_E_THRESHOLD", "MeV");
+    if (block->HasToken("SECONDLAYER_E_THRESHOLD"))
+      m_SecondLayer_E_Threshold = block->GetDouble("SECONDLAYER_E_THRESHOLD", "MeV");
   }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -437,9 +456,10 @@ bool MugastDetector::Match_SecondLayer(int X, int Y, int StripNbr) {
 
 ///////////////////////////////////////////////////////////////////////////
 void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
+  faction_file_initialized = false;
   // vector<nptool::InputBlock*> blocks = parser.GetAllBlocksWithToken("Mugast");
-  auto blocks = parser.GetAllBlocksWithToken("Mugast");  //PS: becasue definition of GetAllBlocksWithToken changed in NP4
-
+  auto blocks = parser.GetAllBlocksWithToken("mugast");  
+  
   // Cartesian Case
   vector<string> cart = {"DetectorNumber", "X001_Y001", "X001_Y128", "X128_Y001", "X128_Y128"};
   // Spherical Case
@@ -449,11 +469,12 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
   string Type;
 
   int number = 0;
+  int ind = 0;
   for (const auto& block : blocks) {
     if (block->HasTokenList(cart)) {
 
         Type = block->GetMainValue();
-      nptool::message("green","","","Muagst Telescope: "+Type);   //PS: correct syntax??
+      nptool::message("green","","","Muagst Telescope: "+Type);
 
       int detectorNbr = block->GetInt("DetectorNumber");
       if (Type == "Square")
@@ -465,7 +486,8 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
         exit(1);
       }
 
-      number++;
+      number = ind+1;
+      ind++;
       m_DetectorNumberIndex[detectorNbr] = number;
       auto A = nptool::ConvertXYZVector(block->GetVector3("X001_Y001", "mm"));    //PS: changed the variable names
       auto B = nptool::ConvertXYZVector(block->GetVector3("X128_Y001", "mm"));         // to match MUST2
@@ -473,11 +495,12 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
       auto D = nptool::ConvertXYZVector(block->GetVector3("X128_Y128", "mm"));
 
       AddTelescope(DetectorType[detectorNbr], A, B, C, D);
+
     }
 
     else if (block->HasTokenList(annular)) {
         Type = block->GetMainValue();
-      nptool::message("green","","","Muagst Telescope: "+Type);   //PS: correct syntax??
+      nptool::message("green","","","Muagst Telescope: "+Type);   
 
       int detectorNbr = block->GetInt("DetectorNumber");
       if (Type == "Annular")
@@ -495,7 +518,7 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
 
     else if (block->HasTokenList(sphe)) {
         Type = block->GetMainValue();
-      nptool::message("green","","","Muagst Telescope: "+Type);   //PS: correct syntax??
+      nptool::message("green","","","Muagst Telescope: "+Type); 
 
       int detectorNbr = block->GetInt("DetectorNumber");
       if (Type == "Square")
@@ -507,7 +530,7 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
         exit(1);
       }
 
-      number++;
+      // number++;
       m_DetectorNumberIndex[detectorNbr] = number;
       double Theta = block->GetDouble("THETA", "deg");
       double Phi = block->GetDouble("PHI", "deg");
@@ -523,6 +546,15 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
       exit(1);
     }
   }
+  //get_acction_file
+  auto app = nptool::Application::GetApplication();
+    if (app->HasFlag("--action")) {
+    auto arg = app->GetVectorArg("--action");
+    std::cout << "MUST2 ACTION FILE :"<< arg[0] << std::endl;
+    if (arg.size()) {
+      ReadActionFile(arg[0]);
+    }
+  }
 
   InitializeStandardParameter();
   // Create a file to be read by Ganil2Root telling which detector
@@ -532,7 +564,8 @@ void MugastDetector::ReadConfiguration(nptool::InputParser parser) {
     shapeFile << it.first << " " << it.second << endl;
   }
   shapeFile.close();
-  ReadAnalysisConfig();
+  // ReadAnalysisConfig();    //PS: not being read right now, to read it, make the config file
+                            // readable by NP4 parser (with ":" after the tokens)
 }
 //////////////////////////////////////////////////////////////////////////
 
@@ -899,17 +932,18 @@ TVector3 MugastDetector::GetTelescopeNormal(const int i) {
   //   X
   double MugastDetector::fDSSD_X_E(const int& i) {
     static string name;
-    name = "Mugast/T";
+    name = "Mugast_T";
     name += nptool::itoa(m_RawData->GetDSSDXEDetectorNbr(i));
     name += "_DSSD_X";
     name += nptool::itoa(m_RawData->GetDSSDXEStripNbr(i));
     name += "_E";
+
     return m_Cal.ApplyCalibration(name, m_RawData->GetDSSDXEEnergy(i), 1);
   }
 
   double MugastDetector::fDSSD_X_T(const int& i) {
     static string name;
-    name = "Mugast/T";
+    name = "Mugast_T";
     name += nptool::itoa(m_RawData->GetDSSDXTDetectorNbr(i));
     name += "_DSSD_X";
     name += nptool::itoa(m_RawData->GetDSSDXTStripNbr(i));
@@ -920,7 +954,7 @@ TVector3 MugastDetector::GetTelescopeNormal(const int i) {
   //   Y
   double MugastDetector::fDSSD_Y_E(const int& i) {
     static string name;
-    name = "Mugast/T";
+    name = "Mugast_T";
     name += nptool::itoa(m_RawData->GetDSSDYEDetectorNbr(i));
     name += "_DSSD_Y";
     name += nptool::itoa(m_RawData->GetDSSDYEStripNbr(i));
@@ -930,7 +964,7 @@ TVector3 MugastDetector::GetTelescopeNormal(const int i) {
 
   double MugastDetector::fDSSD_Y_T(const int& i) {
     static string name;
-    name = "Mugast/T";
+    name = "Mugast_T";
     name += nptool::itoa(m_RawData->GetDSSDYTDetectorNbr(i));
     name += "_DSSD_Y";
     name += nptool::itoa(m_RawData->GetDSSDYTStripNbr(i));
@@ -941,7 +975,7 @@ TVector3 MugastDetector::GetTelescopeNormal(const int i) {
   //   SecondLayer
   double MugastDetector::fSecondLayer_E(const int& i) {
     static string name;
-    name = "Mugast/T";
+    name = "Mugast_T";
     name += nptool::itoa(m_RawData->GetSecondLayerEDetectorNbr(i));
     name += "_SecondLayer";
     name += nptool::itoa(m_RawData->GetSecondLayerEStripNbr(i));
@@ -951,7 +985,7 @@ TVector3 MugastDetector::GetTelescopeNormal(const int i) {
 
   double MugastDetector::fSecondLayer_T(const int& i) {
     static string name;
-    name = "Mugast/T";
+    name = "Mugast_T";
     name += nptool::itoa(m_RawData->GetSecondLayerTDetectorNbr(i));
     name += "_SecondLayer";
     name += nptool::itoa(m_RawData->GetSecondLayerTStripNbr(i));
@@ -996,6 +1030,7 @@ void MugastDetector::TreatFrame(void* commonframe) {
     std::cout << "/////////////////////////////" << std::endl;
   }
 
+
   for (unsigned short i = 0; i < NItems; i++) {
     EbyEframe->EbyedatGetParameters(i, &label_id, &value);
     LblData[0] = label_id;
@@ -1004,10 +1039,11 @@ void MugastDetector::TreatFrame(void* commonframe) {
     label = fLabelMap[label_id];
 
     if (label.compare(0, 2, "MG") == 0) {
-      double det = atoi(label.substr(2, 1).c_str());
+      double det = atoi(label.substr(2, 2).c_str());
       double channel;
       if (label.compare(5, 6, "STRX_E") == 0) {
         channel = atoi(label.substr(11).c_str());
+
         m_RawData->SetDSSDXE(type, det, channel, value);
       }
 
@@ -1025,7 +1061,10 @@ void MugastDetector::TreatFrame(void* commonframe) {
         channel = atoi(label.substr(11).c_str());
         m_RawData->SetDSSDYT(type, det, channel, value);
       }
-      // m_RawData->SetMMTS(TS);
+      // cout<<"values passed are: det= "<<det<<" channel= "<<channel<<" value= "<<value<<endl;
+
+      
+        // m_RawData->SetMMTS(TS);
     }
   }
 #endif
